@@ -1,7 +1,7 @@
 <<: !include common.yaml
 
 esp32:
-  board: adafruit_qtpy_esp32c3
+  board: adafruit_qtpy_esp32c6
   framework:
     type: esp-idf
 

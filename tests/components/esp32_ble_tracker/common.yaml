@@ -1,4 +1,5 @@
 esphome:
+  name: test
   on_boot:
     then:
       - esp32_ble_tracker.start_scan
@@ -38,7 +39,7 @@ esp32_ble_tracker:
   on_scan_end:
     - then:
         - lambda: |-
-             ESP_LOGD("ble_auto", "The scan has ended!");
+            ESP_LOGD("ble_auto", "The scan has ended!");
 
 wifi:
   ssid: MySSID

@@ -25,6 +25,7 @@ from esphome.const import (
     CONF_ON_BLE_ADVERTISE,
     CONF_ON_BLE_MANUFACTURER_DATA_ADVERTISE,
     CONF_ON_BLE_SERVICE_DATA_ADVERTISE,
+    CONF_PERIOD,
     CONF_SERVICE_UUID,
     CONF_TRIGGER_ID,
     KEY_CORE,
@@ -159,6 +160,9 @@ CONFIG_SCHEMA = cv.All(
                             CONF_DURATION, default="5min"
                         ): cv.positive_time_period_seconds,
                         cv.Optional(
+                            CONF_PERIOD, default="5min"
+                        ): cv.positive_time_period_seconds,
+                        cv.Optional(
                             CONF_INTERVAL, default="320ms"
                         ): cv.positive_time_period_milliseconds,
                         cv.Optional(
@@ -268,6 +272,7 @@ async def to_code(config):
 
     params = config[CONF_SCAN_PARAMETERS]
     cg.add(var.set_scan_duration(params[CONF_DURATION]))
+    cg.add(var.set_scan_period(params[CONF_PERIOD]))
     cg.add(var.set_scan_interval(int(params[CONF_INTERVAL].total_milliseconds / 0.625)))
     cg.add(var.set_scan_window(int(params[CONF_WINDOW].total_milliseconds / 0.625)))
     cg.add(var.set_scan_active(params[CONF_ACTIVE]))
