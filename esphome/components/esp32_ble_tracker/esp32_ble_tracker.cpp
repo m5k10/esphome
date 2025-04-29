@@ -279,11 +279,14 @@ void ESP32BLETracker::start_scan_(bool first) {
       listener->on_scan_end();
   }
   this->already_discovered_.clear();
-  this->scan_params_.scan_type = this->scan_active_ ? BLE_SCAN_TYPE_ACTIVE : BLE_SCAN_TYPE_PASSIVE;
   this->scan_params_.own_addr_type = BLE_ADDR_TYPE_PUBLIC;
-  this->scan_params_.scan_filter_policy = BLE_SCAN_FILTER_ALLOW_ALL;
-  this->scan_params_.scan_interval = this->scan_interval_;
-  this->scan_params_.scan_window = this->scan_window_;
+  this->scan_params_.filter_policy = BLE_SCAN_FILTER_ALLOW_ALL;
+  this->scan_params_.scan_duplicate = BLE_SCAN_DUPLICATE_DISABLE;
+  this->scan_params_.cfg_mask = ESP_BLE_GAP_EXT_SCAN_CFG_UNCODE_MASK | ESP_BLE_GAP_EXT_SCAN_CFG_CODE_MASK;
+  this->scan_params_.uncoded_cfg = {this->scan_active_ ? BLE_SCAN_TYPE_ACTIVE : BLE_SCAN_TYPE_PASSIVE,
+                                    this->scan_interval_, this->scan_window_};
+  this->scan_params_.coded_cfg = {this->scan_active_ ? BLE_SCAN_TYPE_ACTIVE : BLE_SCAN_TYPE_PASSIVE,
+                                  this->scan_interval_, this->scan_window_};
 
   // Start timeout before scan is started. Otherwise scan never starts if any error.
   this->set_timeout("scan", this->scan_duration_ * 2000, []() {
@@ -291,14 +294,9 @@ void ESP32BLETracker::start_scan_(bool first) {
     App.reboot();
   });
 
-  esp_err_t err = esp_ble_gap_set_scan_params(&this->scan_params_);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "esp_ble_gap_set_scan_params failed: %d", err);
-    return;
-  }
-  err = esp_ble_gap_start_scanning(this->scan_duration_);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "esp_ble_gap_start_scanning failed: %d", err);
+  esp_err_t scan_ret = esp_ble_gap_set_ext_scan_params(&this->scan_params_);
+  if (scan_ret) {
+    ESP_LOGE(TAG, "esp_ble_gap_set_ext_scan_params failed: %d", err);
     return;
   }
 }
@@ -351,12 +349,29 @@ void ESP32BLETracker::recalculate_advertisement_parser_types() {
 
 void ESP32BLETracker::gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
   switch (event) {
+    case ESP_GAP_BLE_SET_EXT_SCAN_PARAMS_COMPLETE_EVT: {
+      if (param->set_ext_scan_params.status != ESP_BT_STATUS_SUCCESS) {
+        ESP_LOGE(GATTC_TAG, "Extend scan parameters set failed, error status = %x", param->set_ext_scan_params.status);
+        break;
+      }
+      this->gap_scan_set_param_complete_(param->scan_param_cmpl);
+      // the unit of the duration is second
+      esp_ble_gap_start_ext_scan(this->scan_duration_, this->scan_period_);
+      break;
+    }
+    case ESP_GAP_BLE_EXT_SCAN_START_COMPLETE_EVT:
+      if (param->ext_scan_start.status != ESP_BT_STATUS_SUCCESS) {
+        ESP_LOGE(GATTC_TAG, "Extended scanning start failed, status %x", param->ext_scan_start.status);
+        break;
+      }
+      ESP_LOGI(GATTC_TAG, "Extended scanning start successfully");
+      break;
     case ESP_GAP_BLE_SCAN_RESULT_EVT:
       this->gap_scan_result_(param->scan_rst);
       break;
-    case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT:
-      this->gap_scan_set_param_complete_(param->scan_param_cmpl);
-      break;
+    // case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT:
+    //   this->gap_scan_set_param_complete_(param->scan_param_cmpl);
+    //   break;
     case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
       this->gap_scan_start_complete_(param->scan_start_cmpl);
       break;

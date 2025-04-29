@@ -215,6 +215,7 @@ class ESP32BLETracker : public Component,
                         public Parented<ESP32BLE> {
  public:
   void set_scan_duration(uint32_t scan_duration) { scan_duration_ = scan_duration; }
+  void set_scan_period(uint32_t scan_period) { scan_period_ = scan_period; }
   void set_scan_interval(uint32_t scan_interval) { scan_interval_ = scan_interval; }
   void set_scan_window(uint32_t scan_window) { scan_window_ = scan_window; }
   void set_scan_active(bool scan_active) { scan_active_ = scan_active; }
@@ -272,9 +273,10 @@ class ESP32BLETracker : public Component,
   /// Client parameters.
   std::vector<ESPBTClient *> clients_;
   /// A structure holding the ESP BLE scan parameters.
-  esp_ble_scan_params_t scan_params_;
+  esp_ble_ext_scan_params_t scan_params_;
   /// The interval in seconds to perform scans.
   uint32_t scan_duration_;
+  uint32_t scan_period_;
   uint32_t scan_interval_;
   uint32_t scan_window_;
   uint8_t scan_start_fail_count_{0};
