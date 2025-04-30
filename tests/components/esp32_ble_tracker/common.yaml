@@ -1,5 +1,4 @@
 esphome:
-  name: test
   on_boot:
     then:
       - esp32_ble_tracker.start_scan

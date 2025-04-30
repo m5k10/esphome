@@ -1,5 +1,8 @@
 <<: !include common.yaml
 
+esphome:
+  name: esp32-c3-idf
+
 esp32:
   board: adafruit_qtpy_esp32c3
   framework:
