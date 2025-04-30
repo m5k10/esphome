@@ -4,7 +4,7 @@ esphome:
   name: esp32-c6-idf
 
 esp32:
-  board: adafruit_qtpy_esp32c6
+  board: esp32-c6-devkitm-1
   framework:
     type: esp-idf
 
