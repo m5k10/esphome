@@ -99,7 +99,7 @@ class ESP32BLE : public Component {
   void advertising_remove_service_uuid(ESPBTUUID uuid);
   void advertising_register_raw_advertisement_callback(std::function<void(bool)> &&callback);
 
-  void register_gap_event_handler(GAPEventHandler *handler) { this->gap_event_handlers_.push_back(handler); }
+  void register_gap_event_handler(GAPEventHandler *handler);
   void register_gattc_event_handler(GATTcEventHandler *handler) { this->gattc_event_handlers_.push_back(handler); }
   void register_gatts_event_handler(GATTsEventHandler *handler) { this->gatts_event_handlers_.push_back(handler); }
   void register_ble_status_event_handler(BLEStatusEventHandler *handler) {

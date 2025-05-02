@@ -63,6 +63,7 @@ class ESPBLEiBeacon {
 class ESPBTDevice {
  public:
   void parse_scan_rst(const esp_ble_gap_cb_param_t::ble_scan_result_evt_param &param);
+  void parse_scan_rst(const esp_ble_gap_cb_param_t::ble_ext_adv_report_param &param);
 
   std::string address_str() const;
 
@@ -99,7 +100,7 @@ class ESPBTDevice {
 
  protected:
   void parse_adv_(const esp_ble_gap_cb_param_t::ble_scan_result_evt_param &param);
-
+  void parse_adv_(const esp_ble_gap_cb_param_t::ble_ext_adv_report_param &param);
   esp_bd_addr_t address_{
       0,
   };
@@ -113,6 +114,7 @@ class ESPBTDevice {
   std::vector<ServiceData> manufacturer_datas_{};
   std::vector<ServiceData> service_datas_{};
   esp_ble_gap_cb_param_t::ble_scan_result_evt_param scan_result_{};
+  esp_ble_gap_cb_param_t::ble_ext_adv_report_param scan_result_ext_{};
 };
 
 class ESP32BLETracker;
@@ -124,6 +126,9 @@ class ESPBTDeviceListener {
   virtual bool parse_devices(esp_ble_gap_cb_param_t::ble_scan_result_evt_param *advertisements, size_t count) {
     return false;
   };
+  virtual bool parse_devices(esp_ble_gap_cb_param_t::ble_ext_adv_report_param *advertisements, size_t count) {
+    return false;
+  }
   virtual AdvertisementParserType get_advertisement_parser_type() {
     return AdvertisementParserType::PARSED_ADVERTISEMENTS;
   };
@@ -216,8 +221,8 @@ class ESP32BLETracker : public Component,
  public:
   void set_scan_duration(uint32_t scan_duration) { scan_duration_ = scan_duration; }
   void set_scan_period(uint32_t scan_period) { scan_period_ = scan_period; }
-  void set_scan_interval(uint32_t scan_interval) { scan_interval_ = scan_interval; }
-  void set_scan_window(uint32_t scan_window) { scan_window_ = scan_window; }
+  void set_scan_interval(uint16_t scan_interval) { scan_interval_ = scan_interval; }
+  void set_scan_window(uint16_t scan_window) { scan_window_ = scan_window; }
   void set_scan_active(bool scan_active) { scan_active_ = scan_active; }
   bool get_scan_active() const { return scan_active_; }
   void set_scan_continuous(bool scan_continuous) { scan_continuous_ = scan_continuous; }
@@ -256,10 +261,11 @@ class ESP32BLETracker : public Component,
   void end_of_scan_();
   /// Called when a `ESP_GAP_BLE_SCAN_RESULT_EVT` event is received.
   void gap_scan_result_(const esp_ble_gap_cb_param_t::ble_scan_result_evt_param &param);
+  void gap_scan_result_(const esp_ble_gap_cb_param_t::ble_ext_adv_report_param &param);
   /// Called when a `ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT` event is received.
-  void gap_scan_set_param_complete_(const esp_ble_gap_cb_param_t::ble_scan_param_cmpl_evt_param &param);
+  void gap_scan_set_param_complete_(const esp_ble_gap_cb_param_t::ble_set_ext_scan_params_cmpl_param &param);
   /// Called when a `ESP_GAP_BLE_SCAN_START_COMPLETE_EVT` event is received.
-  void gap_scan_start_complete_(const esp_ble_gap_cb_param_t::ble_scan_start_cmpl_evt_param &param);
+  void gap_scan_start_complete_(const esp_ble_gap_cb_param_t::ble_ext_scan_start_cmpl_param &param);
   /// Called when a `ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT` event is received.
   void gap_scan_stop_complete_(const esp_ble_gap_cb_param_t::ble_scan_stop_cmpl_evt_param &param);
   /// Called to set the scanner state. Will also call callbacks to let listeners know when state is changed.
@@ -277,8 +283,8 @@ class ESP32BLETracker : public Component,
   /// The interval in seconds to perform scans.
   uint32_t scan_duration_;
   uint32_t scan_period_;
-  uint32_t scan_interval_;
-  uint32_t scan_window_;
+  uint16_t scan_interval_;
+  uint16_t scan_window_;
   uint8_t scan_start_fail_count_{0};
   bool scan_continuous_;
   bool scan_active_;
@@ -289,12 +295,14 @@ class ESP32BLETracker : public Component,
   bool parse_advertisements_{false};
   SemaphoreHandle_t scan_result_lock_;
   size_t scan_result_index_{0};
+  size_t scan_result_ext_index_{0};
 #ifdef USE_PSRAM
   const static u_int8_t SCAN_RESULT_BUFFER_SIZE = 32;
 #else
   const static u_int8_t SCAN_RESULT_BUFFER_SIZE = 16;
 #endif  // USE_PSRAM
   esp_ble_gap_cb_param_t::ble_scan_result_evt_param *scan_result_buffer_;
+  esp_ble_gap_cb_param_t::ble_ext_adv_report_param *scan_result_buffer_ext_;
   esp_bt_status_t scan_start_failed_{ESP_BT_STATUS_SUCCESS};
   esp_bt_status_t scan_set_param_failed_{ESP_BT_STATUS_SUCCESS};
   int connecting_{0};

@@ -263,6 +263,11 @@ bool ESP32BLE::ble_dismantle_() {
   return true;
 }
 
+void ESP32BLE::register_gap_event_handler(GAPEventHandler *handler) {
+  ESP_LOGV(TAG, "(BLE) register_gap_event_handler - %p", (void *) handler);
+  this->gap_event_handlers_.push_back(handler);
+}
+
 void ESP32BLE::loop() {
   switch (this->state_) {
     case BLE_COMPONENT_STATE_OFF:
@@ -337,7 +342,7 @@ void ESP32BLE::gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_pa
 }  // NOLINT(clang-analyzer-unix.Malloc)
 
 void ESP32BLE::real_gap_event_handler_(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
-  ESP_LOGV(TAG, "(BLE) gap_event_handler - %d", event);
+  ESP_LOGV(TAG, "(BLE) gap_event_handler2 - %d (handlers: %d)", event, this->gap_event_handlers_.size());
   for (auto *gap_handler : this->gap_event_handlers_) {
     gap_handler->gap_event_handler(event, param);
   }

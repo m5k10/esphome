@@ -4,11 +4,69 @@ esphome:
   name: esp32-c6-idf
 
 esp32:
-  board: esp32-c6-devkitm-1
+  board: esp32-c6-devkitc-1
+  #flash_size: 8MB
+  variant: ESP32C6
   framework:
     type: esp-idf
+    version: 5.4.1
+    #source: 6.1.18
+    platform_version: 54.03.20
+    #sdkconfig_options:
+    #  CONFIG_ESPTOOLPY_FLASHSIZE_8MB: y
 
 esp32_ble_tracker:
-  max_connections: 9
+  max_connections: 3
   scan_parameters:
-    period: 1min
+    period: 10min
+    duration: 10min
+    window:
+      milliseconds: 40
+    interval:
+      milliseconds: 40
+    active: True
+    continuous: False
+  on_ble_advertise:
+    - then:
+        # yamllint disable rule:line-length
+        - lambda: !lambda |-
+            ESP_LOGD("main", "The device address (%s) exists in list", x.address_str().c_str());
+        # yamllint enable rule:line-length
+  on_ble_service_data_advertise:
+    - service_uuid: ABCD
+      then:
+        - lambda: !lambda |-
+            ESP_LOGD("main", "Length of service data is %i", x.size());
+  on_ble_manufacturer_data_advertise:
+    - manufacturer_id: ABCD
+      then:
+        - lambda: !lambda |-
+            ESP_LOGD("main", "Length of manufacturer data is %i", x.size());
+  on_scan_end:
+    - then:
+        - lambda: |-
+            ESP_LOGD("ble_auto", "The scan has ended!");
+
+mqtt:
+  broker: 192.168.3.8
+  username: esphome
+  password: "n7y0%P0tfXPkoWYA0XAaW2"
+  client_id: esp32_c6_idf
+
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: "GA0IRiX7NtqnXQXQBETMxbpphAMV1Q8VDt/IE2FDVRU="
+
+switch:
+  - platform: template
+    name: "BLE Scanning"
+    id: ble_scanning_switch
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - logger.log: "Turning on BLE scanning"
+      - esp32_ble_tracker.start_scan:
+    turn_off_action:
+      - logger.log: "Turning off BLE scanning"
+      - esp32_ble_tracker.stop_scan:

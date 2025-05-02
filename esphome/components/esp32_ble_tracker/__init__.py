@@ -273,8 +273,8 @@ async def to_code(config):
     params = config[CONF_SCAN_PARAMETERS]
     cg.add(var.set_scan_duration(params[CONF_DURATION]))
     cg.add(var.set_scan_period(params[CONF_PERIOD]))
-    cg.add(var.set_scan_interval(int(params[CONF_INTERVAL].total_milliseconds / 0.625)))
-    cg.add(var.set_scan_window(int(params[CONF_WINDOW].total_milliseconds / 0.625)))
+    cg.add(var.set_scan_interval(int(params[CONF_INTERVAL].total_milliseconds)))
+    cg.add(var.set_scan_window(int(params[CONF_WINDOW].total_milliseconds)))
     cg.add(var.set_scan_active(params[CONF_ACTIVE]))
     cg.add(var.set_scan_continuous(params[CONF_CONTINUOUS]))
     for conf in config.get(CONF_ON_BLE_ADVERTISE, []):
