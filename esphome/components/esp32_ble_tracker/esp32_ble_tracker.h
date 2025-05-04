@@ -221,8 +221,8 @@ class ESP32BLETracker : public Component,
  public:
   void set_scan_duration(uint32_t scan_duration) { scan_duration_ = scan_duration; }
   void set_scan_period(uint32_t scan_period) { scan_period_ = scan_period; }
-  void set_scan_interval(uint16_t scan_interval) { scan_interval_ = scan_interval; }
-  void set_scan_window(uint16_t scan_window) { scan_window_ = scan_window; }
+  void set_scan_interval(uint16_t scan_interval) { scan_interval_ = scan_interval / 0.625; }
+  void set_scan_window(uint16_t scan_window) { scan_window_ = scan_window / 0.625; }
   void set_scan_active(bool scan_active) { scan_active_ = scan_active; }
   bool get_scan_active() const { return scan_active_; }
   void set_scan_continuous(bool scan_continuous) { scan_continuous_ = scan_continuous; }

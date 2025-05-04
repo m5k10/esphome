@@ -78,6 +78,36 @@ bool BluetoothProxy::parse_devices(esp_ble_gap_cb_param_t::ble_scan_result_evt_p
   this->api_connection_->send_bluetooth_le_raw_advertisements_response(resp);
   return true;
 }
+
+bool BluetoothProxy::parse_devices(esp_ble_gap_cb_param_t::ble_ext_adv_report_param *advertisements, size_t count) {
+  if (!api::global_api_server->is_connected() || this->api_connection_ == nullptr || !this->raw_advertisements_)
+    return false;
+
+  api::BluetoothLERawAdvertisementsResponse resp;
+  for (size_t i = 0; i < count; i++) {
+    auto &result = advertisements[i];
+    api::BluetoothLERawAdvertisement adv;
+    adv.address = esp32_ble::ble_addr_to_uint64(result.params.addr);
+    adv.rssi = result.params.rssi;
+    adv.address_type = (esp_ble_addr_type_t) result.params.addr_type;
+
+    uint8_t length = result.params.adv_data_len;
+    adv.data.reserve(length);
+    for (uint16_t i = 0; i < length; i++) {
+      adv.data.push_back(result.params.adv_data[i]);
+    }
+
+    resp.advertisements.push_back(std::move(adv));
+
+    ESP_LOGV(TAG, "Proxying raw packet from %02X:%02X:%02X:%02X:%02X:%02X, length %d. RSSI: %d dB",
+             result.params.addr[0], result.params.addr[1], result.params.addr[2], result.params.addr[3],
+             result.params.addr[4], result.params.addr[5], length, result.params.rssi);
+  }
+  ESP_LOGV(TAG, "Proxying %d packets", count);
+  this->api_connection_->send_bluetooth_le_raw_advertisements_response(resp);
+  return true;
+}
+
 void BluetoothProxy::send_api_packet_(const esp32_ble_tracker::ESPBTDevice &device) {
   api::BluetoothLEAdvertisementResponse resp;
   resp.address = device.address_uint64();

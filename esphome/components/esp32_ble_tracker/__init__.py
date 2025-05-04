@@ -98,9 +98,12 @@ def validate_scan_parameters(config):
             f"Scan window ({window}) needs to be smaller than scan interval ({interval})"
         )
 
-    if interval.total_milliseconds * 3 > duration.total_milliseconds:
+    if (
+        interval.total_milliseconds * 3 > duration.total_milliseconds
+        and duration.total_milliseconds > 0
+    ):
         raise cv.Invalid(
-            "Scan duration needs to be at least three times the scan interval to"
+            "Scan duration needs to be at least three times the scan interval to "
             "cover all BLE channels."
         )
 
@@ -145,6 +148,11 @@ def consume_connection_slots(
     return _consume_connection_slots
 
 
+INTERVAL_AND_WINDOW_RANGE = cv.All(
+    cv.positive_time_period_milliseconds,
+    cv.Range(min=cv.TimePeriod(milliseconds=2.5), max=cv.TimePeriod(seconds=10.24)),
+)
+
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
@@ -164,10 +172,10 @@ CONFIG_SCHEMA = cv.All(
                         ): cv.positive_time_period_seconds,
                         cv.Optional(
                             CONF_INTERVAL, default="320ms"
-                        ): cv.positive_time_period_milliseconds,
+                        ): INTERVAL_AND_WINDOW_RANGE,
                         cv.Optional(
                             CONF_WINDOW, default="30ms"
-                        ): cv.positive_time_period_milliseconds,
+                        ): INTERVAL_AND_WINDOW_RANGE,
                         cv.Optional(CONF_ACTIVE, default=True): cv.boolean,
                         cv.Optional(CONF_CONTINUOUS, default=True): cv.boolean,
                     }

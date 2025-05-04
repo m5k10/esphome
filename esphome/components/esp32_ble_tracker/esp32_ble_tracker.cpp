@@ -325,6 +325,7 @@ void ESP32BLETracker::start_scan_(bool first) {
     }
     return;
   }
+  ESP_LOGI(TAG, "Starting scanning...");
   this->set_scanner_state_(ScannerState::STARTING);
   ESP_LOGD(TAG, "Starting scan, set scanner state to STARTING.");
   if (!first) {
@@ -336,16 +337,19 @@ void ESP32BLETracker::start_scan_(bool first) {
   this->scan_params_.filter_policy = BLE_SCAN_FILTER_ALLOW_ALL;
   this->scan_params_.scan_duplicate = BLE_SCAN_DUPLICATE_DISABLE;
   this->scan_params_.cfg_mask = ESP_BLE_GAP_EXT_SCAN_CFG_UNCODE_MASK | ESP_BLE_GAP_EXT_SCAN_CFG_CODE_MASK;
+  ESP_LOGD(TAG, "Set scan window %d and interval %d", this->scan_window_, this->scan_interval_);
   this->scan_params_.uncoded_cfg = {this->scan_active_ ? BLE_SCAN_TYPE_ACTIVE : BLE_SCAN_TYPE_PASSIVE,
                                     this->scan_interval_, this->scan_window_};
   this->scan_params_.coded_cfg = {this->scan_active_ ? BLE_SCAN_TYPE_ACTIVE : BLE_SCAN_TYPE_PASSIVE,
                                   this->scan_interval_, this->scan_window_};
 
   // Start timeout before scan is started. Otherwise scan never starts if any error.
-  this->set_timeout("scan", this->scan_duration_ * 2000, []() {
-    ESP_LOGE(TAG, "ESP-IDF BLE scan never terminated, rebooting to restore BLE stack...");
-    App.reboot();
-  });
+  if (this->scan_duration_ > 0) {
+    this->set_timeout("scan", this->scan_duration_ * 2000, []() {
+      ESP_LOGE(TAG, "ESP-IDF BLE scan never terminated, rebooting to restore BLE stack...");
+      App.reboot();
+    });
+  }
 
   esp_err_t scan_ret = esp_ble_gap_set_ext_scan_params(&this->scan_params_);
   if (scan_ret) {
@@ -584,14 +588,13 @@ void ESPBTDevice::parse_scan_rst(const esp_ble_gap_cb_param_t::ble_ext_adv_repor
 
   ESP_LOGVV(TAG, "  RSSI: %d", this->rssi_);
   auto phy = param.params.primary_phy;
-  ESP_LOGVV(TAG, "  Primary PHY: %s",
+  ESP_LOGVV(TAG, "  Primary PHY: %x = %s", phy,
             phy == ESP_BLE_GAP_PRI_PHY_1M ? "LE1M" : (phy == ESP_BLE_GAP_PRI_PHY_CODED ? "LECODED" : "?"));
   phy = param.params.secondly_phy;
-  ESP_LOGVV(TAG, "  Secondary PHY: %s",
-            phy == ESP_BLE_GAP_PHY_1M_PREF_MASK
+  ESP_LOGVV(TAG, "  Secondary PHY: %x = %s", phy,
+            phy == ESP_BLE_GAP_PHY_1M
                 ? "LE1M"
-                : (phy == ESP_BLE_GAP_PHY_2M_PREF_MASK ? "LE2M"
-                                                       : (phy == ESP_BLE_GAP_PHY_CODED_PREF_MASK ? "LECODED" : "?")));
+                : (phy == ESP_BLE_GAP_PHY_2M ? "LE2M" : (phy == ESP_BLE_GAP_PHY_CODED ? "LECODED" : "?")));
   ESP_LOGVV(TAG, "  Name: '%s'", this->name_.c_str());
   for (auto &it : this->tx_powers_) {
     ESP_LOGVV(TAG, "  TX Power: %d", it);
@@ -1029,8 +1032,9 @@ uint64_t ESPBTDevice::address_uint64() const { return esp32_ble::ble_addr_to_uin
 void ESP32BLETracker::dump_config() {
   ESP_LOGCONFIG(TAG, "BLE Tracker:");
   ESP_LOGCONFIG(TAG, "  Scan Duration: %" PRIu32 " s", this->scan_duration_);
-  ESP_LOGCONFIG(TAG, "  Scan Interval: %.1f ms", this->scan_interval_);
-  ESP_LOGCONFIG(TAG, "  Scan Window: %.1f ms", this->scan_window_);
+  ESP_LOGCONFIG(TAG, "  Scan Period: %" PRIu32 " s", this->scan_period_);
+  ESP_LOGCONFIG(TAG, "  Scan Interval: %.1f ms", this->scan_interval_ * 0.625);
+  ESP_LOGCONFIG(TAG, "  Scan Window: %.1f ms", this->scan_window_ * 0.625);
   ESP_LOGCONFIG(TAG, "  Scan Type: %s", this->scan_active_ ? "ACTIVE" : "PASSIVE");
   ESP_LOGCONFIG(TAG, "  Continuous Scanning: %s", YESNO(this->scan_continuous_));
   switch (this->scanner_state_) {

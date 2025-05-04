@@ -6,7 +6,3 @@ captive_portal:
 
 ota:
   - platform: esphome
-
-logger:
-  level: VERY_VERBOSE
-  baud_rate: 115200
