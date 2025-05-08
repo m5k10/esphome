@@ -441,12 +441,210 @@ void ESP32BLETracker::gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_ga
 
 void ESP32BLETracker::gap_scan_set_param_complete_(
     const esp_ble_gap_cb_param_t::ble_set_ext_scan_params_cmpl_param &param) {
-  ESP_LOGV(TAG, "gap_scan_set_param_complete - status %d", param.status);
+  ESP_LOGV(TAG, "gap_scan_set_param_complete - status %s", this->esp_bt_status_to_string_(param.status));
   if (param.status != ESP_BT_STATUS_SUCCESS) {
     ESP_LOGE(TAG, "Extend scan parameters set failed, error status = %x", param.status);
     this->scan_set_param_failed_ = param.status;
   } else {
     this->scan_set_param_failed_ = ESP_BT_STATUS_SUCCESS;
+  }
+}
+
+const char *ESP32BLETracker::esp_bt_status_to_string_(esp_bt_status_t status) {
+  switch (status) {
+    case ESP_BT_STATUS_SUCCESS:
+      return "ESP_BT_STATUS_SUCCESS";
+    case ESP_BT_STATUS_FAIL:
+      return "ESP_BT_STATUS_FAIL";
+    case ESP_BT_STATUS_NOT_READY:
+      return "ESP_BT_STATUS_NOT_READY";
+    case ESP_BT_STATUS_NOMEM:
+      return "ESP_BT_STATUS_NOMEM";
+    case ESP_BT_STATUS_BUSY:
+      return "ESP_BT_STATUS_BUSY";
+    case ESP_BT_STATUS_DONE:
+      return "ESP_BT_STATUS_DONE";
+    case ESP_BT_STATUS_UNSUPPORTED:
+      return "ESP_BT_STATUS_UNSUPPORTED";
+    case ESP_BT_STATUS_PARM_INVALID:
+      return "ESP_BT_STATUS_PARM_INVALID";
+    case ESP_BT_STATUS_UNHANDLED:
+      return "ESP_BT_STATUS_UNHANDLED";
+    case ESP_BT_STATUS_AUTH_FAILURE:
+      return "ESP_BT_STATUS_AUTH_FAILURE";
+    case ESP_BT_STATUS_RMT_DEV_DOWN:
+      return "ESP_BT_STATUS_RMT_DEV_DOWN";
+    case ESP_BT_STATUS_AUTH_REJECTED:
+      return "ESP_BT_STATUS_AUTH_REJECTED";
+    case ESP_BT_STATUS_INVALID_STATIC_RAND_ADDR:
+      return "ESP_BT_STATUS_INVALID_STATIC_RAND_ADDR";
+    case ESP_BT_STATUS_PENDING:
+      return "ESP_BT_STATUS_PENDING";
+    case ESP_BT_STATUS_UNACCEPT_CONN_INTERVAL:
+      return "ESP_BT_STATUS_UNACCEPT_CONN_INTERVAL";
+    case ESP_BT_STATUS_PARAM_OUT_OF_RANGE:
+      return "ESP_BT_STATUS_PARAM_OUT_OF_RANGE";
+    case ESP_BT_STATUS_TIMEOUT:
+      return "ESP_BT_STATUS_TIMEOUT";
+    case ESP_BT_STATUS_PEER_LE_DATA_LEN_UNSUPPORTED:
+      return "ESP_BT_STATUS_PEER_LE_DATA_LEN_UNSUPPORTED";
+    case ESP_BT_STATUS_CONTROL_LE_DATA_LEN_UNSUPPORTED:
+      return "ESP_BT_STATUS_CONTROL_LE_DATA_LEN_UNSUPPORTED";
+    case ESP_BT_STATUS_ERR_ILLEGAL_PARAMETER_FMT:
+      return "ESP_BT_STATUS_ERR_ILLEGAL_PARAMETER_FMT";
+    case ESP_BT_STATUS_MEMORY_FULL:
+      return "ESP_BT_STATUS_MEMORY_FULL";
+    case ESP_BT_STATUS_EIR_TOO_LARGE:
+      return "ESP_BT_STATUS_EIR_TOO_LARGE";
+
+    // HCI error codes (starting from ESP_BT_STATUS_HCI_SUCCESS)
+    case ESP_BT_STATUS_HCI_SUCCESS:
+      return "ESP_BT_STATUS_HCI_SUCCESS";
+    case ESP_BT_STATUS_HCI_ILLEGAL_COMMAND:
+      return "ESP_BT_STATUS_HCI_ILLEGAL_COMMAND";
+    case ESP_BT_STATUS_HCI_NO_CONNECTION:
+      return "ESP_BT_STATUS_HCI_NO_CONNECTION";
+    case ESP_BT_STATUS_HCI_HW_FAILURE:
+      return "ESP_BT_STATUS_HCI_HW_FAILURE";
+    case ESP_BT_STATUS_HCI_PAGE_TIMEOUT:
+      return "ESP_BT_STATUS_HCI_PAGE_TIMEOUT";
+    case ESP_BT_STATUS_HCI_AUTH_FAILURE:
+      return "ESP_BT_STATUS_HCI_AUTH_FAILURE";
+    case ESP_BT_STATUS_HCI_KEY_MISSING:
+      return "ESP_BT_STATUS_HCI_KEY_MISSING";
+    case ESP_BT_STATUS_HCI_MEMORY_FULL:
+      return "ESP_BT_STATUS_HCI_MEMORY_FULL";
+    case ESP_BT_STATUS_HCI_CONNECTION_TOUT:
+      return "ESP_BT_STATUS_HCI_CONNECTION_TOUT";
+    case ESP_BT_STATUS_HCI_MAX_NUM_OF_CONNECTIONS:
+      return "ESP_BT_STATUS_HCI_MAX_NUM_OF_CONNECTIONS";
+    case ESP_BT_STATUS_HCI_MAX_NUM_OF_SCOS:
+      return "ESP_BT_STATUS_HCI_MAX_NUM_OF_SCOS";
+    case ESP_BT_STATUS_HCI_CONNECTION_EXISTS:
+      return "ESP_BT_STATUS_HCI_CONNECTION_EXISTS";
+    case ESP_BT_STATUS_HCI_COMMAND_DISALLOWED:
+      return "ESP_BT_STATUS_HCI_COMMAND_DISALLOWED";
+    case ESP_BT_STATUS_HCI_HOST_REJECT_RESOURCES:
+      return "ESP_BT_STATUS_HCI_HOST_REJECT_RESOURCES";
+    case ESP_BT_STATUS_HCI_HOST_REJECT_SECURITY:
+      return "ESP_BT_STATUS_HCI_HOST_REJECT_SECURITY";
+    case ESP_BT_STATUS_HCI_HOST_REJECT_DEVICE:
+      return "ESP_BT_STATUS_HCI_HOST_REJECT_DEVICE";
+    case ESP_BT_STATUS_HCI_HOST_TIMEOUT:
+      return "ESP_BT_STATUS_HCI_HOST_TIMEOUT";
+    case ESP_BT_STATUS_HCI_UNSUPPORTED_VALUE:
+      return "ESP_BT_STATUS_HCI_UNSUPPORTED_VALUE";
+    case ESP_BT_STATUS_HCI_ILLEGAL_PARAMETER_FMT:
+      return "ESP_BT_STATUS_HCI_ILLEGAL_PARAMETER_FMT";
+    case ESP_BT_STATUS_HCI_PEER_USER:
+      return "ESP_BT_STATUS_HCI_PEER_USER";
+    case ESP_BT_STATUS_HCI_PEER_LOW_RESOURCES:
+      return "ESP_BT_STATUS_HCI_PEER_LOW_RESOURCES";
+    case ESP_BT_STATUS_HCI_PEER_POWER_OFF:
+      return "ESP_BT_STATUS_HCI_PEER_POWER_OFF";
+    case ESP_BT_STATUS_HCI_CONN_CAUSE_LOCAL_HOST:
+      return "ESP_BT_STATUS_HCI_CONN_CAUSE_LOCAL_HOST";
+    case ESP_BT_STATUS_HCI_REPEATED_ATTEMPTS:
+      return "ESP_BT_STATUS_HCI_REPEATED_ATTEMPTS";
+    case ESP_BT_STATUS_HCI_PAIRING_NOT_ALLOWED:
+      return "ESP_BT_STATUS_HCI_PAIRING_NOT_ALLOWED";
+    case ESP_BT_STATUS_HCI_UNKNOWN_LMP_PDU:
+      return "ESP_BT_STATUS_HCI_UNKNOWN_LMP_PDU";
+    case ESP_BT_STATUS_HCI_UNSUPPORTED_REM_FEATURE:
+      return "ESP_BT_STATUS_HCI_UNSUPPORTED_REM_FEATURE";
+    case ESP_BT_STATUS_HCI_SCO_OFFSET_REJECTED:
+      return "ESP_BT_STATUS_HCI_SCO_OFFSET_REJECTED";
+    case ESP_BT_STATUS_HCI_SCO_INTERVAL_REJECTED:
+      return "ESP_BT_STATUS_HCI_SCO_INTERVAL_REJECTED";
+    case ESP_BT_STATUS_HCI_SCO_AIR_MODE:
+      return "ESP_BT_STATUS_HCI_SCO_AIR_MODE";
+    case ESP_BT_STATUS_HCI_INVALID_LMP_PARAM:
+      return "ESP_BT_STATUS_HCI_INVALID_LMP_PARAM";
+    case ESP_BT_STATUS_HCI_UNSPECIFIED:
+      return "ESP_BT_STATUS_HCI_UNSPECIFIED";
+    case ESP_BT_STATUS_HCI_UNSUPPORTED_LMP_PARAMETERS:
+      return "ESP_BT_STATUS_HCI_UNSUPPORTED_LMP_PARAMETERS";
+    case ESP_BT_STATUS_HCI_ROLE_CHANGE_NOT_ALLOWED:
+      return "ESP_BT_STATUS_HCI_ROLE_CHANGE_NOT_ALLOWED";
+    case ESP_BT_STATUS_HCI_LMP_RESPONSE_TIMEOUT:
+      return "ESP_BT_STATUS_HCI_LMP_RESPONSE_TIMEOUT";
+    case ESP_BT_STATUS_HCI_LMP_ERR_TRANS_COLLISION:
+      return "ESP_BT_STATUS_HCI_LMP_ERR_TRANS_COLLISION";
+    case ESP_BT_STATUS_HCI_LMP_PDU_NOT_ALLOWED:
+      return "ESP_BT_STATUS_HCI_LMP_PDU_NOT_ALLOWED";
+    case ESP_BT_STATUS_HCI_ENCRY_MODE_NOT_ACCEPTABLE:
+      return "ESP_BT_STATUS_HCI_ENCRY_MODE_NOT_ACCEPTABLE";
+    case ESP_BT_STATUS_HCI_UNIT_KEY_USED:
+      return "ESP_BT_STATUS_HCI_UNIT_KEY_USED";
+    case ESP_BT_STATUS_HCI_QOS_NOT_SUPPORTED:
+      return "ESP_BT_STATUS_HCI_QOS_NOT_SUPPORTED";
+    case ESP_BT_STATUS_HCI_INSTANT_PASSED:
+      return "ESP_BT_STATUS_HCI_INSTANT_PASSED";
+    case ESP_BT_STATUS_HCI_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED:
+      return "ESP_BT_STATUS_HCI_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED";
+    case ESP_BT_STATUS_HCI_DIFF_TRANSACTION_COLLISION:
+      return "ESP_BT_STATUS_HCI_DIFF_TRANSACTION_COLLISION";
+    case ESP_BT_STATUS_HCI_UNDEFINED_0x2B:
+      return "ESP_BT_STATUS_HCI_UNDEFINED_0x2B";
+    case ESP_BT_STATUS_HCI_QOS_UNACCEPTABLE_PARAM:
+      return "ESP_BT_STATUS_HCI_QOS_UNACCEPTABLE_PARAM";
+    case ESP_BT_STATUS_HCI_QOS_REJECTED:
+      return "ESP_BT_STATUS_HCI_QOS_REJECTED";
+    case ESP_BT_STATUS_HCI_CHAN_CLASSIF_NOT_SUPPORTED:
+      return "ESP_BT_STATUS_HCI_CHAN_CLASSIF_NOT_SUPPORTED";
+    case ESP_BT_STATUS_HCI_INSUFFCIENT_SECURITY:
+      return "ESP_BT_STATUS_HCI_INSUFFCIENT_SECURITY";
+    case ESP_BT_STATUS_HCI_PARAM_OUT_OF_RANGE:
+      return "ESP_BT_STATUS_HCI_PARAM_OUT_OF_RANGE";
+    case ESP_BT_STATUS_HCI_UNDEFINED_0x31:
+      return "ESP_BT_STATUS_HCI_UNDEFINED_0x31";
+    case ESP_BT_STATUS_HCI_ROLE_SWITCH_PENDING:
+      return "ESP_BT_STATUS_HCI_ROLE_SWITCH_PENDING";
+    case ESP_BT_STATUS_HCI_UNDEFINED_0x33:
+      return "ESP_BT_STATUS_HCI_UNDEFINED_0x33";
+    case ESP_BT_STATUS_HCI_RESERVED_SLOT_VIOLATION:
+      return "ESP_BT_STATUS_HCI_RESERVED_SLOT_VIOLATION";
+    case ESP_BT_STATUS_HCI_ROLE_SWITCH_FAILED:
+      return "ESP_BT_STATUS_HCI_ROLE_SWITCH_FAILED";
+    case ESP_BT_STATUS_HCI_INQ_RSP_DATA_TOO_LARGE:
+      return "ESP_BT_STATUS_HCI_INQ_RSP_DATA_TOO_LARGE";
+    case ESP_BT_STATUS_HCI_SIMPLE_PAIRING_NOT_SUPPORTED:
+      return "ESP_BT_STATUS_HCI_SIMPLE_PAIRING_NOT_SUPPORTED";
+    case ESP_BT_STATUS_HCI_HOST_BUSY_PAIRING:
+      return "ESP_BT_STATUS_HCI_HOST_BUSY_PAIRING";
+    case ESP_BT_STATUS_HCI_REJ_NO_SUITABLE_CHANNEL:
+      return "ESP_BT_STATUS_HCI_REJ_NO_SUITABLE_CHANNEL";
+    case ESP_BT_STATUS_HCI_CONTROLLER_BUSY:
+      return "ESP_BT_STATUS_HCI_CONTROLLER_BUSY";
+    case ESP_BT_STATUS_HCI_UNACCEPT_CONN_INTERVAL:
+      return "ESP_BT_STATUS_HCI_UNACCEPT_CONN_INTERVAL";
+    case ESP_BT_STATUS_HCI_DIRECTED_ADVERTISING_TIMEOUT:
+      return "ESP_BT_STATUS_HCI_DIRECTED_ADVERTISING_TIMEOUT";
+    case ESP_BT_STATUS_HCI_CONN_TOUT_DUE_TO_MIC_FAILURE:
+      return "ESP_BT_STATUS_HCI_CONN_TOUT_DUE_TO_MIC_FAILURE";
+    case ESP_BT_STATUS_HCI_CONN_FAILED_ESTABLISHMENT:
+      return "ESP_BT_STATUS_HCI_CONN_FAILED_ESTABLISHMENT";
+    case ESP_BT_STATUS_HCI_MAC_CONNECTION_FAILED:
+      return "ESP_BT_STATUS_HCI_MAC_CONNECTION_FAILED";
+    case ESP_BT_STATUS_HCI_CCA_REJECTED:
+      return "ESP_BT_STATUS_HCI_CCA_REJECTED";
+    case ESP_BT_STATUS_HCI_TYPE0_SUBMAP_NOT_DEFINED:
+      return "ESP_BT_STATUS_HCI_TYPE0_SUBMAP_NOT_DEFINED";
+    case ESP_BT_STATUS_HCI_UNKNOWN_ADV_ID:
+      return "ESP_BT_STATUS_HCI_UNKNOWN_ADV_ID";
+    case ESP_BT_STATUS_HCI_LIMIT_REACHED:
+      return "ESP_BT_STATUS_HCI_LIMIT_REACHED";
+    case ESP_BT_STATUS_HCI_OPT_CANCEL_BY_HOST:
+      return "ESP_BT_STATUS_HCI_OPT_CANCEL_BY_HOST";
+    case ESP_BT_STATUS_HCI_PKT_TOO_LONG:
+      return "ESP_BT_STATUS_HCI_PKT_TOO_LONG";
+    case ESP_BT_STATUS_HCI_TOO_LATE:
+      return "ESP_BT_STATUS_HCI_TOO_LATE";
+    case ESP_BT_STATUS_HCI_TOO_EARLY:
+      return "ESP_BT_STATUS_HCI_TOO_EARLY";
+
+    default:
+      return "ESP_BT_STATUS_UNKNOWN";
   }
 }
 
@@ -495,8 +693,31 @@ void ESP32BLETracker::gap_scan_stop_complete_(const esp_ble_gap_cb_param_t::ble_
   this->set_scanner_state_(ScannerState::STOPPED);
 }
 
+const char *esp_gap_search_evt_to_string(esp_gap_search_evt_t evt) {
+  switch (evt) {
+    case ESP_GAP_SEARCH_INQ_RES_EVT:
+      return "ESP_GAP_SEARCH_INQ_RES_EVT";
+    case ESP_GAP_SEARCH_INQ_CMPL_EVT:
+      return "ESP_GAP_SEARCH_INQ_CMPL_EVT";
+    case ESP_GAP_SEARCH_DISC_RES_EVT:
+      return "ESP_GAP_SEARCH_DISC_RES_EVT";
+    case ESP_GAP_SEARCH_DISC_BLE_RES_EVT:
+      return "ESP_GAP_SEARCH_DISC_BLE_RES_EVT";
+    case ESP_GAP_SEARCH_DISC_CMPL_EVT:
+      return "ESP_GAP_SEARCH_DISC_CMPL_EVT";
+    case ESP_GAP_SEARCH_DI_DISC_CMPL_EVT:
+      return "ESP_GAP_SEARCH_DI_DISC_CMPL_EVT";
+    case ESP_GAP_SEARCH_SEARCH_CANCEL_CMPL_EVT:
+      return "ESP_GAP_SEARCH_SEARCH_CANCEL_CMPL_EVT";
+    case ESP_GAP_SEARCH_INQ_DISCARD_NUM_EVT:
+      return "ESP_GAP_SEARCH_INQ_DISCARD_NUM_EVT";
+    default:
+      return "ESP_GAP_SEARCH_UNKNOWN_EVT";
+  }
+}
+
 void ESP32BLETracker::gap_scan_result_(const esp_ble_gap_cb_param_t::ble_scan_result_evt_param &param) {
-  ESP_LOGV(TAG, "gap_scan_result - event %d", param.search_evt);
+  ESP_LOGV(TAG, "gap_scan_result - event %s", esp_gap_search_evt_to_string(param.search_evt));
   if (param.search_evt == ESP_GAP_SEARCH_INQ_RES_EVT) {
     if (xSemaphoreTake(this->scan_result_lock_, 0L)) {
       if (this->scan_result_index_ < ESP32BLETracker::SCAN_RESULT_BUFFER_SIZE) {
@@ -523,8 +744,36 @@ void ESP32BLETracker::gap_scan_result_(const esp_ble_gap_cb_param_t::ble_scan_re
   }
 }
 
+const char *esp_ble_adv_type_to_string(esp_ble_gap_adv_type_t type) {
+  switch (type) {
+    case ESP_BLE_ADV_REPORT_EXT_ADV_IND:
+      return "Extended Advertising Indication";
+    case ESP_BLE_ADV_REPORT_EXT_SCAN_IND:
+      return "Extended Scan Indication";
+    case ESP_BLE_ADV_REPORT_EXT_DIRECT_ADV:
+      return "Extended Direct Advertising";
+    case ESP_BLE_ADV_REPORT_EXT_SCAN_RSP:
+      return "Extended Scan Response";
+
+    case ESP_BLE_LEGACY_ADV_TYPE_IND:
+      return "Legacy Advertising Indication";
+    case ESP_BLE_LEGACY_ADV_TYPE_DIRECT_IND:
+      return "Legacy Direct Indication";
+    case ESP_BLE_LEGACY_ADV_TYPE_SCAN_IND:
+      return "Legacy Scan Indication";
+    case ESP_BLE_LEGACY_ADV_TYPE_NONCON_IND:
+      return "Legacy Non-Connectable Indication";
+    case ESP_BLE_LEGACY_ADV_TYPE_SCAN_RSP_TO_ADV_IND:
+      return "Legacy Scan Response to ADV_IND";
+    case ESP_BLE_LEGACY_ADV_TYPE_SCAN_RSP_TO_ADV_SCAN_IND:
+      return "Legacy Scan Response to ADV_SCAN_IND";
+    default:
+      return "Unknown Advertising Type";
+  }
+}
+
 void ESP32BLETracker::gap_scan_result_(const esp_ble_gap_cb_param_t::ble_ext_adv_report_param &param) {
-  ESP_LOGV(TAG, "gap_scan_result - event %d", param.params.event_type);
+  ESP_LOGV(TAG, "gap_scan_result - event_type %s", esp_ble_adv_type_to_string(param.params.event_type));
   if (xSemaphoreTake(this->scan_result_lock_, 0L)) {
     if (this->scan_result_ext_index_ < ESP32BLETracker::SCAN_RESULT_BUFFER_SIZE) {
       this->scan_result_buffer_ext_[this->scan_result_ext_index_++] = param;

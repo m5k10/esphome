@@ -8,20 +8,13 @@ esp32:
   framework:
     type: esp-idf
     version: 5.4.1
-    #source: 6.1.18
     platform_version: 54.03.20
-    #sdkconfig_options:
-    #  CONFIG_ESPTOOLPY_FLASHSIZE_8MB: y
 
 esp32_ble_tracker:
   max_connections: 3
   scan_parameters:
     period: 0min
     duration: 0min
-    #window:
-    #  milliseconds: 10
-    #interval:
-    #  milliseconds: 10
     active: True
     continuous: False
   on_ble_advertise:
@@ -57,7 +50,7 @@ switch:
 logger:
   level: VERBOSE
   baud_rate: 115200
-  hardware_uart: UART0
+  hardware_uart: USB_SERIAL_JTAG
 
 bluetooth_proxy:
   active: true

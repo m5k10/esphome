@@ -191,6 +191,31 @@ void BLEClientBase::log_event_(const char *name) {
   ESP_LOGD(TAG, "[%d] [%s] %s", this->connection_index_, this->address_str_.c_str(), name);
 }
 
+const char *esp_gatt_conn_reason_to_string(esp_gatt_conn_reason_t reason) {
+  switch (reason) {
+    case ESP_GATT_CONN_UNKNOWN:
+      return "Unknown connection reason";
+    case ESP_GATT_CONN_L2C_FAILURE:
+      return "General L2CAP failure";
+    case ESP_GATT_CONN_TIMEOUT:
+      return "Connection timeout";
+    case ESP_GATT_CONN_TERMINATE_PEER_USER:
+      return "Connection terminated by peer user";
+    case ESP_GATT_CONN_TERMINATE_LOCAL_HOST:
+      return "Connection terminated by local host";
+    case ESP_GATT_CONN_FAIL_ESTABLISH:
+      return "Failure to establish connection";
+    case ESP_GATT_CONN_LMP_TIMEOUT:
+      return "LMP response timeout";
+    case ESP_GATT_CONN_CONN_CANCEL:
+      return "Connection cancelled";
+    case ESP_GATT_CONN_NONE:
+      return "No connection to cancel";
+    default:
+      return "Unknown connection reason code";
+  }
+}
+
 bool BLEClientBase::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t esp_gattc_if,
                                         esp_ble_gattc_cb_param_t *param) {
   if (event == ESP_GATTC_REG_EVT && this->app_id != param->reg.app_id)
@@ -277,8 +302,8 @@ bool BLEClientBase::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
     case ESP_GATTC_DISCONNECT_EVT: {
       if (!this->check_addr(param->disconnect.remote_bda))
         return false;
-      ESP_LOGD(TAG, "[%d] [%s] ESP_GATTC_DISCONNECT_EVT, reason %d", this->connection_index_,
-               this->address_str_.c_str(), param->disconnect.reason);
+      ESP_LOGD(TAG, "[%d] [%s] ESP_GATTC_DISCONNECT_EVT, reason %s", this->connection_index_,
+               this->address_str_.c_str(), esp_gatt_conn_reason_to_string(param->disconnect.reason));
       this->release_services();
       this->set_state(espbt::ClientState::IDLE);
       break;
