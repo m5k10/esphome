@@ -106,14 +106,57 @@ bool BLEClientBase::parse_device(const espbt::ESPBTDevice &device) {
   return true;
 }
 
+const esp_ble_conn_params_t phy_1m_conn_params = {
+    .scan_interval = 0x40,
+    .scan_window = 0x40,
+    .interval_min = 320,
+    .interval_max = 320,
+    .latency = 0,
+    .supervision_timeout = 600,
+    .min_ce_len = 0,
+    .max_ce_len = 0,
+};
+const esp_ble_conn_params_t phy_2m_conn_params = {
+    .scan_interval = 0x40,
+    .scan_window = 0x40,
+    .interval_min = 320,
+    .interval_max = 320,
+    .latency = 0,
+    .supervision_timeout = 600,
+    .min_ce_len = 0,
+    .max_ce_len = 0,
+};
+const esp_ble_conn_params_t phy_coded_conn_params = {
+    .scan_interval = 0x40,
+    .scan_window = 0x40,
+    .interval_min = 320,  // 306-> 362Kbps
+    .interval_max = 320,
+    .latency = 0,
+    .supervision_timeout = 600,
+    .min_ce_len = 0,
+    .max_ce_len = 0,
+};
+
 void BLEClientBase::connect() {
   ESP_LOGI(TAG, "[%d] [%s] 0x%02x Attempting BLE connection", this->connection_index_, this->address_str_.c_str(),
            this->remote_addr_type_);
   this->paired_ = false;
-  auto ret = esp_ble_gattc_open(this->gattc_if_, this->remote_bda_, this->remote_addr_type_, true);
+
+  esp_ble_gatt_creat_conn_params_t creat_conn_params = {0};
+  memcpy(&creat_conn_params.remote_bda, this->remote_bda_, ESP_BD_ADDR_LEN);
+  creat_conn_params.remote_addr_type = this->remote_addr_type_;
+  creat_conn_params.own_addr_type = BLE_ADDR_TYPE_PUBLIC;
+  creat_conn_params.is_direct = true;
+  creat_conn_params.is_aux = true;
+  creat_conn_params.phy_mask = ESP_BLE_PHY_1M_PREF_MASK | ESP_BLE_PHY_2M_PREF_MASK | ESP_BLE_PHY_CODED_PREF_MASK;
+  creat_conn_params.phy_1m_conn_params = &phy_1m_conn_params;
+  creat_conn_params.phy_2m_conn_params = &phy_2m_conn_params;
+  creat_conn_params.phy_coded_conn_params = &phy_coded_conn_params;
+
+  auto ret = esp_ble_gattc_enh_open(this->gattc_if_, &creat_conn_params);
   if (ret) {
-    ESP_LOGW(TAG, "[%d] [%s] esp_ble_gattc_open error, status=%d", this->connection_index_, this->address_str_.c_str(),
-             ret);
+    ESP_LOGW(TAG, "[%d] [%s] esp_ble_gattc_enh_open error, status=%d", this->connection_index_,
+             this->address_str_.c_str(), ret);
     this->set_state(espbt::ClientState::IDLE);
   } else {
     this->set_state(espbt::ClientState::CONNECTING);

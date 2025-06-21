@@ -2,28 +2,32 @@
 
 esphome:
   name: esp32-c6-idf
+  on_boot:
+    then:
+      - delay:
+          seconds: 60
+      - esp32_ble_tracker.start_scan:
+  includes:
+    - <esp_core_dump.h>
 
 esp32:
   board: esp32-c6-devkitc-1
-  #flash_size: 8MB
   variant: ESP32C6
   framework:
     type: esp-idf
     version: 5.4.1
-    #source: 6.1.18
     platform_version: 54.03.20
-    #sdkconfig_options:
-    #  CONFIG_ESPTOOLPY_FLASHSIZE_8MB: y
 
 esp32_ble_tracker:
+  id: tracker
   max_connections: 3
   scan_parameters:
     period: 0min
     duration: 0min
-    #window:
-    #  milliseconds: 10
-    #interval:
-    #  milliseconds: 10
+    window:
+      milliseconds: 10
+    interval:
+      milliseconds: 10
     active: True
     continuous: False
   on_ble_advertise:
@@ -32,12 +36,6 @@ esp32_ble_tracker:
         - lambda: !lambda |-
             ESP_LOGI("main", "Received %s %s", x.address_str().c_str(), x.get_name().c_str());
         # yamllint enable rule:line-length
-
-mqtt:
-  broker: 192.168.3.8
-  username: esphome
-  password: "n7y0%P0tfXPkoWYA0XAaW2"
-  client_id: esp32_c6_idf
 
 api:
   reboot_timeout: 0s
@@ -49,6 +47,12 @@ switch:
     name: "BLE Scanning"
     id: ble_scanning_switch
     optimistic: true
+    lambda: |-
+      if (id(tracker).get_scanner_state() == esphome::esp32_ble_tracker::ScannerState::RUNNING) {
+        return true;
+      } else {
+        return false;
+      }
     turn_on_action:
       - logger.log: "Turning on BLE scanning"
       - esp32_ble_tracker.start_scan:
@@ -68,3 +72,25 @@ bluetooth_proxy:
 button:
   - platform: restart
     name: "Living Room Restart"
+
+sensor:
+  - platform: uptime
+    name: Uptime Sensor
+binary_sensor:
+  - platform: template
+    name: Coredump
+    lambda: |-
+      esp_core_dump_summary_t summary;
+      if (esp_core_dump_get_summary(&summary) == ESP_OK) {
+        return true;
+      } else {
+        return false;
+      }
+
+external_components:
+  - source: github://soldierkam/esphome-components
+    components: [coredump, partitions]
+    refresh: 1s
+
+coredump:
+  enable_test_crash: True

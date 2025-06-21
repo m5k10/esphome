@@ -3,5 +3,33 @@
 esphome:
   name: esp32-idf
 
-esp32_ble_tracker:
-  max_connections: 9
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: "GA0IRiX7NtqnXQXQBETMxbpphAMV1Q8VDt/IE2FDVRU="
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+  hardware_uart: UART0
+
+button:
+  - platform: restart
+    name: "Living Room Restart"
+
+sensor:
+  - platform: uptime
+    name: Uptime Sensor
+
+external_components:
+  - source: github://soldierkam/esphome-components
+    components: [coredump, partitions]
+    refresh: 1s
+
+coredump:
+  enable_test_crash: True

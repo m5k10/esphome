@@ -299,7 +299,7 @@ void ESP32BLETracker::stop_scan_() {
   }
   this->cancel_timeout("scan");
   this->set_scanner_state_(ScannerState::STOPPING);
-  esp_err_t err = esp_ble_gap_stop_scanning();
+  esp_err_t err = esp_ble_gap_stop_ext_scan();
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "esp_ble_gap_stop_scanning failed: %d", err);
     return;
@@ -427,8 +427,8 @@ void ESP32BLETracker::gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_ga
     // case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
     //   this->gap_scan_start_complete_(param->scan_start_cmpl);
     //   break;
-    case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
-      this->gap_scan_stop_complete_(param->scan_stop_cmpl);
+    case ESP_GAP_BLE_EXT_SCAN_STOP_COMPLETE_EVT:
+      this->gap_scan_stop_complete_(param->ext_scan_stop);
       break;
     default:
       ESP_LOGV(TAG, "tracker gap_event_handler - %d", event);
@@ -676,6 +676,24 @@ void ESP32BLETracker::gap_scan_start_complete_(const esp_ble_gap_cb_param_t::ble
 }
 
 void ESP32BLETracker::gap_scan_stop_complete_(const esp_ble_gap_cb_param_t::ble_scan_stop_cmpl_evt_param &param) {
+  ESP_LOGV(TAG, "gap_scan_stop_complete - status %d", param.status);
+  if (this->scanner_state_ != ScannerState::STOPPING) {
+    if (this->scanner_state_ == ScannerState::RUNNING) {
+      ESP_LOGE(TAG, "Scan was not running when stop complete.");
+    } else if (this->scanner_state_ == ScannerState::STARTING) {
+      ESP_LOGE(TAG, "Scan was not started when stop complete.");
+    } else if (this->scanner_state_ == ScannerState::FAILED) {
+      ESP_LOGE(TAG, "Scan was in failed state when stop complete.");
+    } else if (this->scanner_state_ == ScannerState::IDLE) {
+      ESP_LOGE(TAG, "Scan was idle when stop complete.");
+    } else if (this->scanner_state_ == ScannerState::STOPPED) {
+      ESP_LOGE(TAG, "Scan was stopped when stop complete.");
+    }
+  }
+  this->set_scanner_state_(ScannerState::STOPPED);
+}
+
+void ESP32BLETracker::gap_scan_stop_complete_(const esp_ble_gap_cb_param_t::ble_ext_scan_stop_cmpl_param &param) {
   ESP_LOGV(TAG, "gap_scan_stop_complete - status %d", param.status);
   if (this->scanner_state_ != ScannerState::STOPPING) {
     if (this->scanner_state_ == ScannerState::RUNNING) {
